@@ -12,6 +12,11 @@ async function checkStatus() {
             statusIndicator.className = 'status-online';
             statusText.textContent = data.message;
             timestamp.textContent = `Last updated: ${new Date(data.timestamp).toLocaleString()}`;
+            
+            // Update stats if available
+            if (data.stats) {
+                updateStats(data.stats);
+            }
         } else {
             throw new Error('Server responded with error');
         }
@@ -22,6 +27,27 @@ async function checkStatus() {
         statusIndicator.className = 'status-offline';
         statusText.textContent = 'Connection failed';
         console.error('Status check failed:', error);
+    }
+}
+
+// Update stats display
+function updateStats(stats) {
+    const statsRow = document.getElementById('stats-row');
+    if (statsRow) {
+        statsRow.innerHTML = `
+            <div class="stat-item">
+                <div class="stat-value">${stats.notes || 0}</div>
+                <div class="stat-label">Notes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${stats.tasks || 0}</div>
+                <div class="stat-label">Tasks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">${stats.files || 0}</div>
+                <div class="stat-label">Files</div>
+            </div>
+        `;
     }
 }
 
