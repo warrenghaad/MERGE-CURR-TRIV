@@ -4,6 +4,13 @@
 This project was imported from GitHub (https://github.com/warrenghaad/MERGE-CURR-TRIV) as a minimal repository and has been configured as a complete Node.js web application for the Replit environment.
 
 ## Recent Changes
+- **September 18, 2025**: Added Kindle Import and Document Upload Features
+  - Implemented Kindle My Clippings.txt parser with smart categorization
+  - Added document/image upload with extraction capabilities
+  - Auto-categorizes books based on content analysis (Psychology, Business, Technology, etc.)
+  - Generates smart tags from highlight content
+  - Shows highlight counts and book metadata in catalog
+
 - **September 15, 2025**: Initial setup from minimal GitHub import
   - Created complete Node.js/Express web application structure
   - Configured for Replit environment with proper host binding (0.0.0.0:5000)
@@ -33,4 +40,9 @@ This project was imported from GitHub (https://github.com/warrenghaad/MERGE-CURR
 - **Environment**: Replit with Node.js 20 support
 
 ## Current State
-The application is fully functional and ready for use. It displays a status page showing the application is running correctly and includes both frontend and backend components working together.
+The application is a fully functional offline-capable cataloging system with the following features:
+- **Smart Catalog**: Interactive cataloging with auto-suggestions, categories, and tags
+- **Kindle Integration**: Import books and highlights from Kindle My Clippings.txt files
+- **Document Management**: Upload and extract images from PDFs, Word docs, and image files
+- **Intelligent Categorization**: Automatically categorizes books and content based on keywords
+- **Offline-Ready**: Works offline and syncs to GitHub for local development
