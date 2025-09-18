@@ -25,7 +25,10 @@
                 <div class="filter-chips" id="filter-chips"></div>
             </div>
 
-            <button class="add-item-btn" onclick="showAddItemModal()">+ Add New Item</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="add-item-btn" onclick="showAddItemModal()">+ Add New Item</button>
+                <button class="add-item-btn" style="background: linear-gradient(135deg, #ffa500 0%, #ff6b6b 100%);" onclick="showKindleImport()">📖 Import Kindle</button>
+            </div>
         </div>
 
         <div class="catalog-layout">
@@ -106,6 +109,46 @@
         <div class="modal-content">
             <span class="close" onclick="closeQuickView()">&times;</span>
             <div id="quick-view-content"></div>
+        </div>
+    </div>
+
+    <!-- Kindle Import Modal -->
+    <div id="kindle-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeKindleModal()">&times;</span>
+            <h2>📖 Import Your Kindle Library</h2>
+            
+            <div style="background: #f7fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #2d3748;">How to Export from Kindle:</h3>
+                <ol style="color: #4a5568; line-height: 1.8;">
+                    <li>Connect your Kindle device to your computer via USB</li>
+                    <li>Navigate to <code style="background: #fff; padding: 2px 6px; border-radius: 4px;">/Documents/My Clippings.txt</code></li>
+                    <li>Copy the file and upload it here</li>
+                </ol>
+                <p style="color: #718096; font-size: 14px; margin-top: 10px;">
+                    💡 This will import all your highlights, notes, and bookmarks
+                </p>
+            </div>
+            
+            <div class="form-group">
+                <label>Upload My Clippings.txt</label>
+                <input type="file" id="kindle-file" accept=".txt" onchange="handleKindleFile(event)">
+                <div id="kindle-upload-status" style="margin-top: 10px; color: #667eea;"></div>
+            </div>
+            
+            <div id="kindle-preview" style="display: none; margin-top: 20px;">
+                <h3 style="color: #2d3748;">📚 Books Found:</h3>
+                <div id="kindle-books-list" style="max-height: 300px; overflow-y: auto; background: #f7fafc; padding: 15px; border-radius: 8px;">
+                    <!-- Books will be listed here -->
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="import-kindle-btn" class="submit-btn" onclick="importKindleBooks()" style="display: none;">
+                    Import Selected Books
+                </button>
+                <button class="btn" onclick="closeKindleModal()">Cancel</button>
+            </div>
         </div>
     </div>
 

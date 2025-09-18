@@ -65,6 +65,7 @@ const suggestionEngine = {
 // Global variables for document handling
 let uploadedFile = null;
 let extractedImages = [];
+let kindleBooks = {}; // Store parsed Kindle books
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -719,3 +720,195 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Kindle Import Functions
+// Show Kindle import modal
+function showKindleImport() {
+    document.getElementById('kindle-modal').style.display = 'block';
+}
+
+// Close Kindle modal
+function closeKindleModal() {
+    document.getElementById('kindle-modal').style.display = 'none';
+    document.getElementById('kindle-file').value = '';
+    document.getElementById('kindle-upload-status').innerHTML = '';
+    document.getElementById('kindle-preview').style.display = 'none';
+}
+
+// Handle Kindle file upload
+function handleKindleFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        parseKindleClippings(content);
+    };
+    reader.readAsText(file);
+    
+    document.getElementById('kindle-upload-status').innerHTML = `📄 Processing ${file.name}...`;
+}
+
+// Parse Kindle My Clippings.txt format
+function parseKindleClippings(content) {
+    kindleBooks = {};
+    const clippings = content.split('==========\n').filter(c => c.trim());
+    
+    clippings.forEach(clipping => {
+        const lines = clipping.trim().split('\n');
+        if (lines.length >= 3) {
+            // Parse book title and author
+            const titleLine = lines[0];
+            const match = titleLine.match(/^(.+?)\s*\(([^)]+)\)$/);
+            const title = match ? match[1].trim() : titleLine.trim();
+            const author = match ? match[2].trim() : 'Unknown Author';
+            
+            // Parse highlight text (skip location/date info)
+            const highlightText = lines.slice(2).join(' ').trim();
+            
+            if (highlightText && !highlightText.startsWith('Your ')) {
+                const bookKey = `${title}|${author}`;
+                if (!kindleBooks[bookKey]) {
+                    kindleBooks[bookKey] = {
+                        title,
+                        author,
+                        highlights: [],
+                        category: inferBookCategory(title, highlightText)
+                    };
+                }
+                kindleBooks[bookKey].highlights.push(highlightText);
+            }
+        }
+    });
+    
+    displayKindleBooks();
+}
+
+// Infer book category based on title and content
+function inferBookCategory(title, content) {
+    const text = (title + ' ' + content).toLowerCase();
+    
+    // Smart categorization based on keywords
+    if (/psychology|mind|cognitive|brain|thinking/i.test(text)) return 'Psychology';
+    if (/business|management|leadership|startup|entrepreneur/i.test(text)) return 'Business';
+    if (/history|historical|war|civilization/i.test(text)) return 'History';
+    if (/science|physics|biology|chemistry|research/i.test(text)) return 'Science';
+    if (/philosophy|wisdom|ethics|moral/i.test(text)) return 'Philosophy';
+    if (/fiction|novel|story|tale/i.test(title)) return 'Fiction';
+    if (/self[-\s]help|improve|habit|success/i.test(text)) return 'Self-Help';
+    if (/technology|computer|programming|software/i.test(text)) return 'Technology';
+    if (/art|design|creative|aesthetic/i.test(text)) return 'Art & Design';
+    
+    return 'Books';
+}
+
+// Display parsed Kindle books
+function displayKindleBooks() {
+    const booksList = document.getElementById('kindle-books-list');
+    const bookCount = Object.keys(kindleBooks).length;
+    
+    if (bookCount === 0) {
+        booksList.innerHTML = '<p style="color: #718096;">No books found in the file.</p>';
+        return;
+    }
+    
+    document.getElementById('kindle-upload-status').innerHTML = `✅ Found ${bookCount} books with highlights`;
+    document.getElementById('kindle-preview').style.display = 'block';
+    document.getElementById('import-kindle-btn').style.display = 'block';
+    
+    booksList.innerHTML = Object.entries(kindleBooks).map(([key, book]) => `
+        <div style="padding: 10px; margin-bottom: 10px; background: white; border-radius: 6px; border-left: 4px solid #667eea;">
+            <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                <input type="checkbox" checked style="margin-right: 10px; margin-top: 3px;">
+                <div>
+                    <strong style="color: #2d3748;">${book.title}</strong><br>
+                    <span style="color: #718096; font-size: 14px;">by ${book.author}</span><br>
+                    <span style="color: #667eea; font-size: 12px;">📝 ${book.highlights.length} highlights</span>
+                    <span style="color: #48bb78; font-size: 12px; margin-left: 10px;">📁 ${book.category}</span>
+                </div>
+            </label>
+        </div>
+    `).join('');
+}
+
+// Import selected Kindle books
+function importKindleBooks() {
+    const checkboxes = document.querySelectorAll('#kindle-books-list input[type="checkbox"]:checked');
+    let importCount = 0;
+    
+    Object.entries(kindleBooks).forEach(([key, book], index) => {
+        if (index < checkboxes.length && checkboxes[index].checked) {
+            // Create summary from highlights
+            const summary = book.highlights.length > 0 
+                ? book.highlights.slice(0, 3).join(' ... ') 
+                : 'No highlights available';
+            
+            // Generate smart tags based on content
+            const tags = generateSmartTags(book.title, book.highlights.join(' '));
+            
+            const bookItem = {
+                id: Date.now() + index,
+                title: book.title,
+                description: `by ${book.author}\n\n📖 Key Insights:\n${summary}`,
+                category: book.category,
+                tags: ['kindle', ...tags],
+                color: '#ffa500',
+                hasDocument: false,
+                kindleHighlights: book.highlights,
+                highlightCount: book.highlights.length,
+                author: book.author,
+                timestamp: new Date().toISOString()
+            };
+            
+            catalogItems.unshift(bookItem);
+            importCount++;
+            
+            // Update categories
+            if (!categories.includes(book.category)) {
+                categories.push(book.category);
+            }
+        }
+    });
+    
+    // Update UI
+    renderCatalog();
+    updateStats();
+    initializeCategories();
+    saveData();
+    
+    showNotification(`📚 Imported ${importCount} books from your Kindle library!`);
+    closeKindleModal();
+}
+
+// Generate smart tags based on content analysis
+function generateSmartTags(title, content) {
+    const tags = [];
+    const text = (title + ' ' + content).toLowerCase();
+    
+    // Subject-based tags
+    if (/motivat|inspir/i.test(text)) tags.push('motivation');
+    if (/product|develop|agile/i.test(text)) tags.push('productivity');
+    if (/invest|financ|money/i.test(text)) tags.push('finance');
+    if (/health|wellness|mindful/i.test(text)) tags.push('health');
+    if (/relation|love|family/i.test(text)) tags.push('relationships');
+    if (/learn|education|study/i.test(text)) tags.push('learning');
+    if (/creativ|innovat/i.test(text)) tags.push('creativity');
+    
+    return tags.slice(0, 5); // Limit to 5 tags
+}
+
+// Export catalog data
+function exportData() {
+    const dataStr = JSON.stringify(catalogItems, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `catalog-export-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showNotification('Catalog data exported!');
+}
