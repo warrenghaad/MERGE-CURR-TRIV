@@ -58,6 +58,16 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>Upload Document/Image</label>
+                    <input type="file" id="document-upload" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.gif,.bmp,.webp" onchange="handleDocumentUpload(event)">
+                    <div id="upload-status" style="margin-top: 10px; color: #667eea; font-size: 14px;"></div>
+                    <div id="extracted-images" style="margin-top: 10px; display: none;">
+                        <p style="font-size: 14px; color: #718096;">Extracted Images:</p>
+                        <div id="image-preview-container" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
                     <label>Description</label>
                     <textarea id="item-description" rows="3"></textarea>
                 </div>

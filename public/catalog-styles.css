@@ -356,6 +356,23 @@ body {
     margin-top: 5px;
 }
 
+.document-indicator, .image-indicator {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.document-indicator {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.image-indicator {
+    background: #fef3c7;
+    color: #d97706;
+}
+
 /* Modal Styles */
 .modal {
     display: none;

@@ -62,6 +62,10 @@ const suggestionEngine = {
     }
 };
 
+// Global variables for document handling
+let uploadedFile = null;
+let extractedImages = [];
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeCategories();
@@ -256,7 +260,7 @@ function updateCategoryDatalist() {
 }
 
 // Handle adding new item
-function handleAddItem(e) {
+async function handleAddItem(e) {
     e.preventDefault();
     
     const title = document.getElementById('item-title').value;
@@ -274,8 +278,34 @@ function handleAddItem(e) {
         category,
         tags,
         color: selectedColor,
+        hasDocument: uploadedFile !== null,
+        documentName: uploadedFile ? uploadedFile.name : null,
+        documentType: uploadedFile ? getDocumentType(uploadedFile) : null,
+        extractedImages: extractedImages.length > 0 ? extractedImages : null,
         timestamp: new Date().toISOString()
     };
+    
+    // If there's an uploaded file, upload it to server first
+    if (uploadedFile) {
+        try {
+            const formData = new FormData();
+            formData.append('file', uploadedFile);
+            
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const fileInfo = await response.json();
+                newItem.fileInfo = fileInfo;
+                showNotification(`Document "${uploadedFile.name}" uploaded and cataloged!`);
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            showNotification('File upload failed, but item was cataloged');
+        }
+    }
     
     catalogItems.unshift(newItem);
     
@@ -297,10 +327,15 @@ function handleAddItem(e) {
     updateStats();
     closeModal();
     
-    // Reset form
+    // Reset form and upload state
     e.target.reset();
     selectedColor = '#667eea';
     document.querySelector('.color-option').classList.add('selected');
+    uploadedFile = null;
+    extractedImages = [];
+    document.getElementById('upload-status').innerHTML = '';
+    document.getElementById('extracted-images').style.display = 'none';
+    document.getElementById('image-preview-container').innerHTML = '';
     
     // Show success animation
     showNotification('Item added successfully!');
@@ -428,6 +463,8 @@ function renderCatalog() {
             <p class="item-description">${item.description}</p>
             <div class="item-metadata">
                 <span class="item-category">${item.category}</span>
+                ${item.hasDocument ? `<span class="document-indicator" title="${item.documentName}">📎 ${item.documentType || 'File'}</span>` : ''}
+                ${item.extractedImages ? '<span class="image-indicator" title="Contains images">🖼️</span>' : ''}
                 <div class="item-tags">
                     ${item.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
                 </div>
@@ -516,7 +553,20 @@ function showQuickView(item) {
             <span style="background: #ebf4ff; color: #667eea; padding: 6px 12px; border-radius: 6px;">
                 ${item.category}
             </span>
+            ${item.hasDocument ? `<span style="background: #f0fdf4; color: #16a34a; padding: 6px 12px; border-radius: 6px;">📎 ${item.documentName}</span>` : ''}
         </div>
+        ${item.extractedImages && item.extractedImages.length > 0 ? `
+            <div style="margin: 20px 0;">
+                <p style="color: #4a5568; margin-bottom: 10px; font-weight: 600;">Attached Images:</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    ${item.extractedImages.map(img => `
+                        <img src="${img}" 
+                             style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid #e2e8f0;"
+                             onclick="window.open('${img}', '_blank')" />
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
             ${item.tags.map(tag => `<span style="background: #f7fafc; color: #718096; padding: 4px 10px; border-radius: 4px;">#${tag}</span>`).join('')}
         </div>
@@ -548,6 +598,88 @@ function addNewCategory() {
         updateCategoryDatalist();
         showNotification(`Category "${name}" added`);
     }
+}
+
+// Handle document upload
+function handleDocumentUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    uploadedFile = file;
+    const statusDiv = document.getElementById('upload-status');
+    const fileSize = (file.size / 1024).toFixed(2);
+    
+    statusDiv.innerHTML = `📄 ${file.name} (${fileSize} KB) uploaded`;
+    
+    // Auto-fill title if empty
+    const titleInput = document.getElementById('item-title');
+    if (!titleInput.value) {
+        titleInput.value = file.name.split('.').slice(0, -1).join('.');
+    }
+    
+    // Handle image files
+    if (file.type.startsWith('image/')) {
+        extractImagesFromFile(file);
+    }
+    
+    // For PDFs, we'd need a PDF.js library to extract images
+    // For now, show a message for PDF files
+    if (file.type === 'application/pdf') {
+        statusDiv.innerHTML += '<br>📋 PDF document ready for cataloging';
+        // In a real implementation, you'd use PDF.js to extract images
+        showNotification('PDF uploaded - image extraction would require PDF.js library');
+    }
+    
+    // For Word documents
+    if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
+        statusDiv.innerHTML += '<br>📝 Word document ready for cataloging';
+        showNotification('Word doc uploaded - would require mammoth.js for extraction');
+    }
+}
+
+// Extract images from uploaded files
+function extractImagesFromFile(file) {
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const extractedDiv = document.getElementById('extracted-images');
+            const container = document.getElementById('image-preview-container');
+            
+            extractedDiv.style.display = 'block';
+            container.innerHTML = '';
+            
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            img.style.border = '2px solid #e2e8f0';
+            img.style.cursor = 'pointer';
+            img.onclick = () => window.open(e.target.result, '_blank');
+            
+            container.appendChild(img);
+            extractedImages = [e.target.result];
+            
+            showNotification('Image ready for cataloging!');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Helper function to get document type
+function getDocumentType(file) {
+    if (!file) return null;
+    
+    const extension = file.name.split('.').pop().toLowerCase();
+    const mimeType = file.type;
+    
+    if (mimeType.startsWith('image/')) return 'image';
+    if (extension === 'pdf' || mimeType === 'application/pdf') return 'pdf';
+    if (extension === 'doc' || extension === 'docx') return 'word';
+    if (extension === 'txt' || mimeType === 'text/plain') return 'text';
+    
+    return 'document';
 }
 
 // Show notification
