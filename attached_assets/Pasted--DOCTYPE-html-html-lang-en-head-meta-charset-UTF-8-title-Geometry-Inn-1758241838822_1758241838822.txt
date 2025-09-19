@@ -1,0 +1,212 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Geometry → Innovation Catalog</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --bg:#0f1115; --panel:#1e242c; --accent:#ffb347; --accent2:#5dd0ff; --text:#eef2f5;
+        --good:#57c785; --warn:#ffcf44; --high:#ff6b6b;
+        font-family: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      }
+      body { margin:0; background:var(--bg); color:var(--text); line-height:1.4; }
+      header { padding:1rem 1.2rem; background:linear-gradient(90deg,#222b33,#1a2026); box-shadow:0 2px 6px #0008;}
+      h1 { margin:0; font-size:1.2rem; letter-spacing:.5px; font-weight:600;}
+      .wrap { padding:1rem 1.2rem; }
+      .controls { display:flex; flex-wrap:wrap; gap:.75rem; margin-bottom:.9rem; }
+      .controls > * { background:var(--panel); border:1px solid #2b323b; color:var(--text); padding:.55rem .7rem;
+        border-radius:.5rem; font-size:.8rem; min-width:11ch; }
+      input[type=search]{ flex:2; }
+      select, input { outline:none; }
+      table { width:100%; border-collapse:collapse; font-size:.72rem; background:var(--panel); }
+      thead { position:sticky; top:0; background:#25303a; z-index:2; }
+      th, td { padding:.45rem .5rem; text-align:left; vertical-align:top; }
+      th { cursor:pointer; user-select:none; white-space:nowrap; position:relative; }
+      th.sort-asc::after, th.sort-desc::after { content:""; border:5px solid transparent; position:absolute; right:6px; top:50%; transform:translateY(-50%); }
+      th.sort-asc::after { border-bottom-color:var(--accent); margin-top:-4px; }
+      th.sort-desc::after { border-top-color:var(--accent); margin-top:4px; }
+      tbody tr { border-top:1px solid #2b323b; transition:background .2s; }
+      tbody tr:hover { background:#2b3640; }
+      .tags span { display:inline-block; background:#33414c; padding:2px 6px; border-radius:10px; margin:0 4px 4px 0; font-size:.6rem; }
+      .pill { padding:2px 6px; border-radius:6px; font-weight:600; font-size:.6rem; display:inline-block; }
+      .apex { background:linear-gradient(90deg,#3a4854,#2d3944); border:1px solid #3d4a56;}
+      .score { font-variant-numeric:tabular-nums; }
+      .flexcol { display:flex; flex-direction:column; gap:.35rem; }
+      details { background: #25303a; border:1px solid #33414a; border-radius:.5rem; padding:.5rem .7rem; }
+      summary { cursor:pointer; font-weight:600; }
+      footer { padding:1rem; font-size:.6rem; opacity:.6; text-align:center;}
+      @media (max-width:900px){
+        table { display:none; }
+        .cards { display:grid; gap:.9rem; }
+        .card { background:var(--panel); padding:.75rem .85rem; border:1px solid #2c333b; border-radius:.7rem;
+          display:flex; flex-direction:column; gap:.5rem; }
+        .card h2 { margin:0; font-size:.85rem; }
+        .stack { display:flex; flex-wrap:wrap; gap:.35rem; }
+        .stack span { background:#33414c; padding:2px 6px; border-radius:10px; font-size:.55rem; }
+        .mini { font-size:.55rem; opacity:.8; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Geometric → Aesthetic Complexity → Innovation Catalog</h1>
+    </header>
+    <div class="wrap">
+      <div class="controls">
+        <input id="search" type="search" placeholder="Search title / motifs / chain…" />
+        <select id="era"><option value="">Era (all)</option></select>
+        <select id="theme"><option value="">Theme (all)</option></select>
+        <select id="op"><option value="">Operation (all)</option></select>
+        <select id="sym"><option value="">Symmetry (all)</option></select>
+        <select id="grade"><option value="">Grade Band</option></select>
+        <select id="sort">
+          <option value="Title">Sort: Title</option>
+          <option value="ApexIndex">Sort: ApexIndex</option>
+          <option value="G">Sort: G</option>
+          <option value="A">Sort: A</option>
+          <option value="T">Sort: T</option>
+          <option value="P">Sort: P</option>
+          <option value="X">Sort: X</option>
+        </select>
+      </div>
+      <table id="data">
+        <thead>
+          <tr>
+            <th data-k="Title">Title</th>
+            <th data-k="Type">Type</th>
+            <th data-k="Era">Era</th>
+            <th data-k="ThemeTags">Themes</th>
+            <th data-k="GeometricOperations">Geometric Operations</th>
+            <th data-k="SymmetryClass">Symmetry</th>
+            <th data-k="FunctionalPrinciple">Functional Principle</th>
+            <th data-k="SymbolicMotifs">Motifs</th>
+            <th data-k="ApexIndex">Apex</th>
+            <th data-k="VariableInteractionChain">Interaction Chain</th>
+            <th data-k="LessonSeed">Lesson Seed</th>
+            <th data-k="GradeBand">Grade</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="cards" id="cards"></div>
+      <details style="margin-top:1.2rem;">
+        <summary>Field Key (concise)</summary>
+        <div class="flexcol" style="margin-top:.4rem;">
+          <div><strong>G A T P X</strong> = Geometry mastery, Aesthetic complexity, Transferability, Problem alignment, Cultural/Affective resonance.</div>
+          <div><strong>ApexIndex</strong> = Simple mean (tweak later for weighting).</div>
+        </div>
+      </details>
+    </div>
+    <footer>Prototype spine. Static data. Replace / extend via the dataset array in script.</footer>
+    <script>
+      const dataset = [
+        {"ID":"STH","Title":"Stonehenge","Type":"Invention/Site","Era":"Neolithic","EraRange":"3000–2000 BCE","Region":"Britain","ThemeTags":"Astronomy;Ritual;Measurement","GeometricOperations":"Radial alignment;Angular sightline;Circle construction","SymmetryClass":"Radial","FunctionalPrinciple":"Celestial sightline","MaterialTechnique":"Mortise-tenon in megaliths","SymbolicMotifs":"Solar cycle;Axis mundi","G":3,"A":3,"T":3,"P":4,"X":4,"ApexIndex":3.4,"VariableInteractionChain":"Seasonal agricultural risk → need to predict solstices → geometric placement encodes repetition → ritual stabilizes knowledge.","LessonSeed":"Model solstice sightlines with cardboard arcs.","GradeBand":"4–5","CognitiveLoad":"Medium"},
+        {"ID":"ZIG","Title":"Ziggurat of Ur","Type":"Invention/Structure","Era":"Bronze Age","EraRange":"2100 BCE","Region":"Mesopotamia","ThemeTags":"Urbanization;Elevation;Cosmology","GeometricOperations":"Stepped stacking;Axial ascent;Tiered platform","SymmetryClass":"Axial","FunctionalPrinciple":"Vertical layering for flood + ritual","MaterialTechnique":"Sun-dried mud brick with bitumen","SymbolicMotifs":"Sacred mountain;Sky ladder","G":2,"A":3,"T":4,"P":4,"X":4,"ApexIndex":3.4,"VariableInteractionChain":"Floodplain instability → elevated platform → stepped geometry enables height → symbolic ascent legitimizes authority.","LessonSeed":"Design flood-safe layered platform; water tray test.","GradeBand":"5–6","CognitiveLoad":"Medium"},
+        {"ID":"PYR","Title":"Great Pyramid","Type":"Invention/Structure","Era":"Old Kingdom","EraRange":"2600–2500 BCE","Region":"Egypt","ThemeTags":"Precision;Logistics;Monumentality","GeometricOperations":"Slope ratio control;Base squaring;Mass layering","SymmetryClass":"Axial","FunctionalPrinciple":"Load distribution via taper","MaterialTechnique":"Limestone block sequencing","SymbolicMotifs":"Solar resurrection;Cardinal order","G":4,"A":4,"T":5,"P":5,"X":5,"ApexIndex":4.6,"VariableInteractionChain":"Afterlife doctrine → resource mobilization → refined base geometry → stable load path → celestial legitimacy.","LessonSeed":"Compute block volumes; explore optimal angle.","GradeBand":"6–7","CognitiveLoad":"High"},
+        {"ID":"ELEM","Title":"Euclidean Propositions I.1–4","Type":"Pattern/Theory","Era":"Classical","EraRange":"300 BCE","Region":"Greece","ThemeTags":"Proof;Abstraction;Construction","GeometricOperations":"Circle intersection;Segment transfer;Congruence logic","SymmetryClass":"Radial/Axial","FunctionalPrinciple":"Reproducible construction algorithm","MaterialTechnique":"Compass + straightedge diagrams","SymbolicMotifs":"Ideal forms;Rational order","G":5,"A":3,"T":5,"P":5,"X":5,"ApexIndex":4.6,"VariableInteractionChain":"Need to generalize craft → abstract postulates → intersecting circles encode transfer → deductive chain legitimizes method.","LessonSeed":"Embodied compass steps → translate to proof statements.","GradeBand":"7–8","CognitiveLoad":"High"},
+        {"ID":"ASTR","Title":"Astrolabe","Type":"Invention/Instrument","Era":"Medieval","EraRange":"800–1400 CE","Region":"Islamic World","ThemeTags":"Navigation;Astronomy;Analog computing","GeometricOperations":"Planar projection;Rotational layering;Scale subdivision","SymmetryClass":"Radial","FunctionalPrinciple":"Mapping spherical sky to plane","MaterialTechnique":"Brass casting + engraving","SymbolicMotifs":"Heavens as ordered design","G":4,"A":4,"T":5,"P":5,"X":5,"ApexIndex":4.6,"VariableInteractionChain":"Prayer time + navigation → need sky model → stereographic projection flattens sphere → rotatable plates enable reuse.","LessonSeed":"Assemble paper astrolabe; measure classroom 'star'.","GradeBand":"6–8","CognitiveLoad":"High"},
+        {"ID":"PANT","Title":"Pantheon Dome","Type":"Invention/Structure","Era":"Imperial","EraRange":"120 CE","Region":"Rome","ThemeTags":"Structural efficiency;Light;Space","GeometricOperations":"Coffering;Radial compression;Oculus opening","SymmetryClass":"Radial","FunctionalPrinciple":"Weight reduction + thrust control","MaterialTechnique":"Pozzolana concrete + graded aggregate","SymbolicMotifs":"Cosmic vault;Eye of Jupiter","G":5,"A":5,"T":5,"P":5,"X":5,"ApexIndex":5.0,"VariableInteractionChain":"Desire vast uncolumned space → explore compression geometry → coffers lighten + rhythm → oculus anchors cosmic symbolism.","LessonSeed":"Foam wedge ring compression demo.","GradeBand":"7–8","CognitiveLoad":"High"},
+        {"ID":"MAYA","Title":"Maya Calendar Round","Type":"Pattern/System","Era":"Classic","EraRange":"200–900 CE","Region":"Mesoamerica","ThemeTags":"Timekeeping;Cycles;Prediction","GeometricOperations":"Modular counting;Gear-like interlock;Positional rotation","SymmetryClass":"Rotational","FunctionalPrinciple":"Interleaving cycles for long-span tracking","MaterialTechnique":"Stone + codex glyphs","SymbolicMotifs":"Cosmic regeneration;Agrarian timing","G":4,"A":4,"T":4,"P":5,"X":5,"ApexIndex":4.4,"VariableInteractionChain":"Agrarian + ritual scheduling → dual-cycle sync → rotational modularity multiplies period → glyph system preserves transmission.","LessonSeed":"Cardboard 13×20 wheels for 260-day cycle.","GradeBand":"5–6","CognitiveLoad":"Medium"},
+        {"ID":"GVLT","Title":"Gothic Rib Vault","Type":"Invention/Structure","Era":"High Medieval","EraRange":"1100–1300 CE","Region":"Europe","ThemeTags":"Verticality;Light;Optimization","GeometricOperations":"Intersecting arches;Load ribbing;Pointed span tuning","SymmetryClass":"Axial/Radial","FunctionalPrinciple":"Channeling loads to columns","MaterialTechnique":"Stone ribs + web infill","SymbolicMotifs":"Heavenly ascent;Divine light","G":4,"A":5,"T":5,"P":5,"X":4,"ApexIndex":4.6,"VariableInteractionChain":"Theological drive for luminous height → pointed arch modulates thrust → rib network concentrates forces → stained glass aesthetic reinforces sacred narrative.","LessonSeed":"Straw + clay mini vault vs barrel arch test.","GradeBand":"6–8","CognitiveLoad":"High"},
+        {"ID":"BRUN","Title":"Brunelleschi Dome","Type":"Invention/Structure","Era":"Renaissance","EraRange":"1420–1436","Region":"Italy","ThemeTags":"Reinvention;Scale;Innovation","GeometricOperations":"Double-shell layering;Herringbone brick;Progressive ring tension","SymmetryClass":"Radial","FunctionalPrinciple":"Self-supporting incremental lift","MaterialTechnique":"Brick + stone + wooden chains","SymbolicMotifs":"Human ingenuity;Classical revival","G":5,"A":5,"T":5,"P":5,"X":5,"ApexIndex":5.0,"VariableInteractionChain":"Civic prestige + span challenge → double shell reduces weight → herringbone locks bricks → rings manage hoop stress → harmony sells leap.","LessonSeed":"Cardboard herringbone ring vs plain stack collapse test.","GradeBand":"7–8","CognitiveLoad":"High"},
+        {"ID":"PARA","Title":"Parametric Facade","Type":"Pattern/Application","Era":"Contemporary","EraRange":"2000–Present","Region":"Global","ThemeTags":"Adaptation;Environment;Digital fabrication","GeometricOperations":"Algorithmic iteration;Surface tessellation;Performance feedback","SymmetryClass":"Translational/Fractal","FunctionalPrinciple":"Climate-responsive modulation","MaterialTechnique":"CNC-cut panels + composites","SymbolicMotifs":"Biomimic form;Sustainability","G":5,"A":5,"T":5,"P":5,"X":4,"ApexIndex":4.8,"VariableInteractionChain":"Energy + identity goals → algorithm ties environmental data to geometry → fabrication realizes complexity affordably.","LessonSeed":"Spreadsheet vary panel angle vs light; plot output.","GradeBand":"7–8","CognitiveLoad":"High"}
+      ];
+      const el = s=>document.querySelector(s);
+      const tbody = el('#data tbody');
+      const cards = el('#cards');
+      const controls = {
+        search: el('#search'), era: el('#era'), theme: el('#theme'),
+        op: el('#op'), sym: el('#sym'), grade: el('#grade'), sort: el('#sort')
+      };
+      const unique = (key, splitter=';') =>
+        [...new Set(dataset.flatMap(r => (r[key]||'').split(splitter).map(x=>x.trim()).filter(Boolean)))].sort();
+      function fillSelect(select, arr){ arr.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; select.appendChild(o); }); }
+      fillSelect(controls.era, unique('Era'));
+      fillSelect(controls.theme, unique('ThemeTags'));
+      fillSelect(controls.op, unique('GeometricOperations'));
+      fillSelect(controls.sym, unique('SymmetryClass','/'));
+      fillSelect(controls.grade, unique('GradeBand'));
+      let currentSort = { key:'Title', dir:1 };
+      function applyFilters(){
+        const q = controls.search.value.toLowerCase();
+        const era = controls.era.value;
+        const theme = controls.theme.value;
+        const op = controls.op.value;
+        const sym = controls.sym.value;
+        const grade = controls.grade.value;
+        let rows = dataset.filter(r=>{
+          if (era && r.Era!==era) return false;
+            const inList = (field,val)=> (r[field]||'').split(/;|\/|,/).map(s=>s.trim()).includes(val);
+          if (theme && !inList('ThemeTags',theme)) return false;
+          if (op && !inList('GeometricOperations',op)) return false;
+          if (sym && !inList('SymmetryClass',sym)) return false;
+          if (grade && r.GradeBand!==grade) return false;
+          if (q){
+            const blob = (r.Title + r.SymbolicMotifs + r.VariableInteractionChain + r.LessonSeed).toLowerCase();
+            if (!blob.includes(q)) return false;
+          }
+          return true;
+        });
+        const sortKey = controls.sort.value;
+        rows.sort((a,b)=>{
+          const A=a[sortKey], B=b[sortKey];
+          if (typeof A === 'number' && typeof B === 'number') return (A-B)*currentSort.dir;
+          return (''+A).localeCompare(''+B)*currentSort.dir;
+        });
+        renderTable(rows); renderCards(rows);
+      }
+      function renderTable(rows){
+        tbody.innerHTML='';
+        rows.forEach(r=>{
+          const tr=document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.Title}</td>
+            <td>${r.Type}</td>
+            <td>${r.Era}</td>
+            <td class="tags">${tagHTML(r.ThemeTags)}</td>
+            <td>${r.GeometricOperations}</td>
+            <td>${r.SymmetryClass}</td>
+            <td>${r.FunctionalPrinciple}</td>
+            <td>${r.SymbolicMotifs}</td>
+            <td class="score">${r.ApexIndex.toFixed(1)}</td>
+            <td>${r.VariableInteractionChain}</td>
+            <td>${r.LessonSeed}</td>
+            <td>${r.GradeBand}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      function tagHTML(str){ return (str||'').split(/;|,/).map(s=>s.trim()).filter(Boolean).map(s=>`<span>${s}</span>`).join(''); }
+      function renderCards(rows){
+        cards.innerHTML='';
+        rows.forEach(r=>{
+          const c=document.createElement('div');
+          c.className='card';
+          c.innerHTML=`
+            <h2>${r.Title}</h2>
+            <div class="mini">${r.Era} • ${r.Type} • Apex ${r.ApexIndex.toFixed(1)}</div>
+            <div class="stack">${tagHTML(r.ThemeTags)}</div>
+            <div style="font-size:.6rem; line-height:1.2;"><strong>Ops:</strong> ${r.GeometricOperations}<br>
+              <strong>Principle:</strong> ${r.FunctionalPrinciple}</div>
+            <details><summary style="font-size:.65rem;">Chain</summary>
+              <div style="font-size:.6rem; margin-top:.3rem;">${r.VariableInteractionChain}</div>
+            </details>
+            <div style="font-size:.6rem;"><strong>Lesson:</strong> ${r.LessonSeed}</div>`;
+          cards.appendChild(c);
+        });
+      }
+      Object.values(controls).forEach(c=>c.addEventListener('input',applyFilters));
+      document.querySelectorAll('th[data-k]').forEach(th=>{
+        th.addEventListener('click',()=>{
+          const k=th.dataset.k;
+          if (currentSort.key===k) currentSort.dir*=-1; else { currentSort.key=k; currentSort.dir=1; }
+          controls.sort.value=k;
+          document.querySelectorAll('th').forEach(h=>h.classList.remove('sort-asc','sort-desc'));
+          th.classList.add(currentSort.dir===1?'sort-asc':'sort-desc');
+          applyFilters();
+        });
+      });
+      applyFilters();
+    </script>
+  </body>
+  </html>
