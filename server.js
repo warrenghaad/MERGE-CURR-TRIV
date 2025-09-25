@@ -5,6 +5,8 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Middleware
 app.use(express.json());
@@ -65,10 +67,32 @@ app.get('/api/status', (req, res) => {
     status: 'running', 
     message: 'MERGE-CURR-TRIV application is operational',
     timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    version: '1.0.0',
+    features: {
+      catalog: 'Interactive catalog system with search and filters',
+      curriculum: 'Ziggurat-based educational curriculum builder', 
+      fileUpload: 'Document and image upload with metadata',
+      notesApi: 'Create, read, update, delete notes',
+      tasksApi: 'Task management with completion tracking'
+    },
+    endpoints: {
+      dashboard: '/',
+      catalog: '/catalog.html',
+      curriculum: '/ziggurat-curriculum.html',
+      api: {
+        status: '/api/status',
+        notes: '/api/notes',
+        tasks: '/api/tasks', 
+        files: '/api/files',
+        upload: '/api/upload'
+      }
+    },
     stats: {
       notes: notes.length,
       tasks: tasks.length,
-      files: fileList.length
+      files: fileList.length,
+      uptime: process.uptime()
     }
   });
 });
@@ -206,7 +230,12 @@ app.post('/api/counter/reset', (req, res) => {
   res.json({ count: counter });
 });
 
-// Start server - bind to 0.0.0.0 for Replit
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+// Start server - bind to configured host for Replit compatibility
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 MERGE-CURR-TRIV Server running on http://${HOST}:${PORT}`);
+  console.log(`📚 Environment: ${NODE_ENV}`);
+  console.log(`🔗 Dashboard: http://${HOST}:${PORT}`);
+  console.log(`📋 Catalog: http://${HOST}:${PORT}/catalog.html`);
+  console.log(`🏛️ Curriculum: http://${HOST}:${PORT}/ziggurat-curriculum.html`);
+  console.log(`📊 API Status: http://${HOST}:${PORT}/api/status`);
 });
