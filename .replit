@@ -1,6 +1,11 @@
 modules = ["nodejs-20", "python-3.11"]
+
 [agent]
 expertMode = true
+
+[agent.knowledge]
+title = "MERGE-CURR-TRIV Interactive Catalog System"
+description = "A Node.js web application featuring an interactive catalog system with document management, notes, tasks, and ziggurat curriculum builder. Includes file upload, Kindle integration, and smart categorization features."
 
 [nix]
 channel = "stable-25_05"

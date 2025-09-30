@@ -56,6 +56,10 @@ jspm_packages/
 # Serverless directories
 .serverless
 
+# Application specific
+uploads/
+*.tmp
+
 # OS generated files
 .DS_Store
 .DS_Store?
